@@ -1,0 +1,193 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TaskFlow – Personal Task Manager</title>
+  <meta name="description" content="TaskFlow is a modern personal task manager that helps you organize, prioritize, and track your tasks efficiently." />
+
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Our custom stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════
+       HEADER / NAVIGATION
+  ════════════════════════════════════════ -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">✦</span>
+        <span class="logo-text">Task<span class="logo-accent">Flow</span></span>
+      </div>
+      <p class="header-tagline">Stay organized. Stay productive.</p>
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════════════ -->
+  <main class="container">
+
+    <!-- ── DASHBOARD ── -->
+    <section class="dashboard" id="dashboard" aria-label="Task statistics">
+      <h2 class="section-title">Dashboard</h2>
+      <div class="stats-grid">
+        <div class="stat-card stat-total" id="stat-total">
+          <div class="stat-icon">📋</div>
+          <div class="stat-info">
+            <span class="stat-number" id="total-count">0</span>
+            <span class="stat-label">Total Tasks</span>
+          </div>
+        </div>
+        <div class="stat-card stat-pending" id="stat-pending">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-info">
+            <span class="stat-number" id="pending-count">0</span>
+            <span class="stat-label">Pending</span>
+          </div>
+        </div>
+        <div class="stat-card stat-completed" id="stat-completed">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <span class="stat-number" id="completed-count">0</span>
+            <span class="stat-label">Completed</span>
+          </div>
+        </div>
+        <div class="stat-card stat-high" id="stat-high">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-info">
+            <span class="stat-number" id="high-count">0</span>
+            <span class="stat-label">High Priority</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ADD / EDIT TASK FORM ── -->
+    <section class="form-section" id="form-section" aria-label="Add or edit a task">
+      <h2 class="section-title" id="form-title">Add New Task</h2>
+
+      <form id="task-form" novalidate>
+        <!-- Hidden field holds the ID of the task being edited (empty = new task) -->
+        <input type="hidden" id="edit-task-id" value="" />
+
+        <div class="form-row">
+          <div class="form-group form-group-wide">
+            <label for="task-title">Task Title <span class="required">*</span></label>
+            <input
+              type="text"
+              id="task-title"
+              name="title"
+              placeholder="What needs to be done?"
+              maxlength="200"
+              required
+            />
+            <span class="field-error" id="title-error"></span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group form-group-wide">
+            <label for="task-description">Description <span class="optional">(optional)</span></label>
+            <textarea
+              id="task-description"
+              name="description"
+              rows="3"
+              placeholder="Add more details about this task..."
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="form-row form-row-cols">
+          <div class="form-group">
+            <label for="task-priority">Priority</label>
+            <select id="task-priority" name="priority">
+              <option value="low">🟢 Low</option>
+              <option value="medium" selected>🟡 Medium</option>
+              <option value="high">🔴 High</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="task-due-date">Due Date</label>
+            <input type="date" id="task-due-date" name="due_date" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="form-submit-btn">
+            <span class="btn-icon">+</span> Create Task
+          </button>
+          <button type="button" class="btn btn-secondary" id="cancel-edit-btn" style="display:none;">
+            Cancel Edit
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ── TASK LIST ── -->
+    <section class="task-section" id="task-section" aria-label="Task list">
+      <div class="task-section-header">
+        <h2 class="section-title">My Tasks</h2>
+
+        <!-- Filter Buttons -->
+        <div class="filter-bar" role="group" aria-label="Filter tasks">
+          <button class="filter-btn active" data-filter="all"       id="filter-all">All</button>
+          <button class="filter-btn"         data-filter="pending"   id="filter-pending">Pending</button>
+          <button class="filter-btn"         data-filter="completed" id="filter-completed">Completed</button>
+          <button class="filter-btn"         data-filter="high"      id="filter-high">🔥 High Priority</button>
+        </div>
+      </div>
+
+      <!-- Loading spinner shown while data is being fetched -->
+      <div class="spinner" id="loading-spinner" aria-label="Loading tasks...">
+        <div class="spinner-ring"></div>
+      </div>
+
+      <!-- This div is populated dynamically by JavaScript -->
+      <div class="task-list" id="task-list" role="list"></div>
+
+      <!-- Shown when no tasks match the current filter -->
+      <div class="empty-state" id="empty-state" style="display:none;">
+        <div class="empty-icon">🗂️</div>
+        <h3>No tasks found</h3>
+        <p id="empty-message">Add your first task using the form above!</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ════════════════════════════════════════
+       DELETE CONFIRMATION MODAL
+  ════════════════════════════════════════ -->
+  <div class="modal-overlay" id="delete-modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading" style="display:none;">
+    <div class="modal">
+      <h3 id="modal-heading">Delete Task?</h3>
+      <p>This action cannot be undone. Are you sure you want to delete this task?</p>
+      <div class="modal-actions">
+        <button class="btn btn-danger" id="confirm-delete-btn">Delete</button>
+        <button class="btn btn-secondary" id="cancel-delete-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       TOAST NOTIFICATION
+  ════════════════════════════════════════ -->
+  <div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+  <!-- ════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════ -->
+  <footer class="footer">
+    <p>TaskFlow &copy; 2025 &mdash; Built with Flask &amp; Vanilla JS</p>
+  </footer>
+
+  <!-- Our JavaScript file (loaded at the end so the DOM is ready) -->
+  <script src="/static/js/script.js"></script>
+</body>
+</html>
